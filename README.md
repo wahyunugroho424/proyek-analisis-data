@@ -23,3 +23,8 @@ pip install jupyter
 ### Terminal Proyek
 python -m streamlit run
 
+
+###Pembuatan NoteBook
+pip install nbformat
+
+

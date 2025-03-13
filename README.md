@@ -13,5 +13,5 @@ pip install steamlit
 pipenv install
 pip install jupyter 
 
-### Mengerun Proyek
+### Terminal Proyek
 python -m streamlit run

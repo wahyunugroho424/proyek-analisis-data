@@ -1,30 +1,29 @@
-# proyek-analisis-data
+# Dicoding Collection Dashboard ✨
 
-## Setup Analisis data menggunakan pyhton
-Membuat folder dashboard di file manager
-
-### Menginstal beberapa library pyhton
-pip install panda
-
-pip install matplotlib 
-
+## Setup Environment - Vccode
+```
+mengecek apakah python sudah terdownload menggunakan pyhton --version
+setelah itu mendownload library pada python :
+pip install numpy
+pip install pandas
+pip install matplotlib
 pip install seaborn
-
-pip install scipy
-
+pip install lxml
 pip install jupyter
+pip install scipy
+pip install streamit
+pip install babel
+```
 
-pip install steamlit
+## Setup Environment - Shell/Terminal
+```
+mengecek apakah library stream sudah terinstal menggunakan python -m streamlit --version
+pip install --user streamlit
+cd "C:\Users\Waghyu\Documents\coding camp\dashboard"
 
-pipenv install
+```
 
-pip install jupyter 
-
-### Terminal Proyek
-python -m streamlit run
-
-
-#### Pembuatan NoteBook
-pip install nbformat
-
-
+## Run steamlit app
+```
+streamlit run dashboard.py
+``` python -m streamlit run --server.address="localhost" ""C:\Users\Waghyu\Documents\coding camp\dashboard/ dasboard.py"

@@ -25,5 +25,5 @@ cd "C:\Users\Waghyu\Documents\coding camp\dashboard"
 
 ## Run steamlit app
 ```
-streamlit run dashboard.py
-``` python -m streamlit run --server.address="localhost" ""C:\Users\Waghyu\Documents\coding camp\dashboard/ dasboard.py"
+python -m streamlit run --server.address="localhost" ""C:\Users\Waghyu\Documents\coding camp\dashboard/ dasboard.py"
+``` 

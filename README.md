@@ -19,11 +19,11 @@ pip install babel
 ```
 mengecek apakah library stream sudah terinstal menggunakan python -m streamlit --version
 pip install --user streamlit
-cd "C:\Users\Waghyu\Documents\coding camp\dashboard"
+
 
 ```
 
 ## Run streamlit app
 ```
-python -m streamlit run --server.address="localhost" ""C:\Users\Waghyu\Documents\coding camp\dashboard/ dasboard.py"
+streamlit run dashboard.py
 ``` 

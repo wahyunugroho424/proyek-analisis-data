@@ -15,11 +15,6 @@ pip install streamit
 pip install babel
 ```
 
-## Setup Environment - Shell/Terminal
-```
-mengecek apakah library stream sudah terinstal menggunakan python -m streamlit --version
-pip install --user streamlit
-
 
 ```
 

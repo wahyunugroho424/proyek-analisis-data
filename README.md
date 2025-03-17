@@ -19,6 +19,5 @@ pip install babel
 ```
 
 ## Run streamlit app
-```
-streamlit run dashboard.py
+```streamlit run dashboard.py
 ``` 

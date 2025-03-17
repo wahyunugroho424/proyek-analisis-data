@@ -15,10 +15,7 @@ pip install streamit
 pip install babel
 ```
 
-
-```
-
-## Run streamlit app
+### Run streamlit app
 ```
 streamlit run dashboard.py
 

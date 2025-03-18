@@ -13,6 +13,7 @@ pip install jupyter
 pip install scipy
 pip install streamit
 pip install babel
+pip install openpyxl
 ```
 
 ### Run streamlit app

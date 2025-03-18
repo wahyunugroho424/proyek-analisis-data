@@ -1,6 +1,6 @@
 # Dicoding Collection Dashboard ✨
 
-## Setup Environment - Vccode
+## Setup Environment - Vscode
 ```
 mengecek apakah python sudah terdownload menggunakan pyhton --version
 setelah itu mendownload library pada python :

@@ -48,7 +48,11 @@ def buat_df_rfm(df):
     return df_rfm
 
 # Memuat data
-df = pd.read_csv(r"C:\Users\Waghyu\Documents\coding camp\Proyek Akhir\E-Commerce Public Dataset\all_data.csv")
+# Link file Excel yang benar (gunakan `/raw/` dalam URL)
+url = "https://github.com/wahyunugroho424/proyek-analisis-data/raw/main/dashboard/all_data.xlsx"
+
+# Membaca file Excel dengan pandas
+df = pd.read_excel(url, engine="openpyxl")  # Gunakan engine openpyxl untuk file .xlsx
 
 kolom_tanggal = ["order_delivered_customer_date"]
 df.sort_values(by="order_delivered_customer_date", inplace=True)

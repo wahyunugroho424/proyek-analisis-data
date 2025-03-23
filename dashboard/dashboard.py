@@ -6,151 +6,80 @@ from babel.numbers import format_currency
 
 sns.set(style='dark')
 
-# Fungsi bantu untuk menyiapkan berbagai dataframe
-def buat_df_harian(df):
-    df_harian = df.resample(rule='D', on='order_delivered_customer_date').agg({
-        "order_id": "nunique",
-        "price": "sum"
-    })
-    df_harian = df_harian.reset_index()
-    df_harian.rename(columns={
-        "order_id": "jumlah_pesanan",
-        "price": "pendapatan"
-    }, inplace=True)
-    
-    return df_harian
-
-def buat_df_produk(df):
-    df_produk = df.groupby("product_name_lenght").product_photos_qty.sum().sort_values(ascending=False).reset_index()
-    return df_produk   
-
-def buat_df_per_provinsi(df):
-    df_provinsi = df.groupby(by="customer_state").customer_id.nunique().reset_index()
-    df_provinsi.rename(columns={
-        "customer_id": "jumlah_pelanggan"
-    }, inplace=True)
-    
-    return df_provinsi
-
-def buat_df_rfm(df):
-    df_rfm = df.groupby(by="customer_id", as_index=False).agg({
-        "order_delivered_customer_date": "max", # Tanggal terakhir order
-        "order_id": "nunique",
-        "price": "sum"
-    })
-    df_rfm.columns = ["customer_id", "tanggal_order_terakhir", "frekuensi", "moneter"]
-    
-    df_rfm["tanggal_order_terakhir"] = df_rfm["tanggal_order_terakhir"].dt.date
-    tanggal_terbaru = df["order_delivered_customer_date"].dt.date.max()
-    df_rfm["recency"] = df_rfm["tanggal_order_terakhir"].apply(lambda x: (tanggal_terbaru - x).days)
-    df_rfm.drop("tanggal_order_terakhir", axis=1, inplace=True)
-    
-    return df_rfm
-
 # Memuat data
-# Link file Excel yang benar (gunakan `/raw/` dalam URL)
 url = "https://github.com/wahyunugroho424/proyek-analisis-data/raw/main/dashboard/all_data.xlsx"
+df = pd.read_excel(url, engine="openpyxl")
 
-# Membaca file Excel dengan pandas
-df = pd.read_excel(url, engine="openpyxl")  # Gunakan engine openpyxl untuk file .xlsx
+# Pastikan kolom tanggal dalam format datetime
+df["order_delivered_customer_date"] = pd.to_datetime(df["order_delivered_customer_date"])
 
-kolom_tanggal = ["order_delivered_customer_date"]
-df.sort_values(by="order_delivered_customer_date", inplace=True)
-df.reset_index(inplace=True)
+tanggal_min = df["order_delivered_customer_date"].min().date()
+tanggal_max = df["order_delivered_customer_date"].max().date()
 
-for kolom in kolom_tanggal:
-    df[kolom] = pd.to_datetime(df[kolom])
-
-# Filter data
-tanggal_min = df["order_delivered_customer_date"].min()
-tanggal_max = df["order_delivered_customer_date"].max()
-
+# Sidebar untuk memilih rentang tanggal
 with st.sidebar:
     st.image("https://github.com/dicodingacademy/assets/raw/main/logo.png")
-    
-    start_date, end_date = st.date_input(
-        label='Pilih Rentang Waktu', min_value=tanggal_min,
-        max_value=tanggal_max, value=[tanggal_min, tanggal_max]
+    tanggal_range = st.date_input(
+        "Pilih Rentang Waktu", 
+        min_value=tanggal_min, 
+        max_value=tanggal_max, 
+        value=(tanggal_min, tanggal_max)  # Pastikan dalam bentuk tuple
     )
+    
+    # Jika hanya satu tanggal yang dipilih, gunakan default
+    if isinstance(tanggal_range, tuple) and len(tanggal_range) == 2:
+        start_date, end_date = tanggal_range
+    else:
+        start_date, end_date = tanggal_min, tanggal_max
 
-df_main = df[(df["order_delivered_customer_date"] >= str(start_date)) & 
-              (df["order_delivered_customer_date"] <= str(end_date))]
+# Filter data berdasarkan rentang waktu
+df_main = df[(df["order_delivered_customer_date"] >= pd.Timestamp(start_date)) & 
+              (df["order_delivered_customer_date"] <= pd.Timestamp(end_date))]
 
-# Membuat berbagai dataframe
-df_harian = buat_df_harian(df_main)
-df_produk = buat_df_produk(df_main)
-df_provinsi = buat_df_per_provinsi(df_main)
-df_rfm = buat_df_rfm(df_main)
+# Menghitung jumlah pesanan per minggu
+df_mingguan = df_main.resample('W', on="order_delivered_customer_date")["order_id"].nunique().reset_index()
 
-# Tampilan utama dashboard
+# Visualisasi tren jumlah pesanan mingguan
 st.header('Dashboard E-Commerce')
-st.subheader('Ringkasan Pesanan Harian')
-
-kol1, kol2 = st.columns(2)
-
-with kol1:
-    total_pesanan = df_harian.jumlah_pesanan.sum()
-    st.metric("Total Pesanan", value=total_pesanan)
-
-with kol2:
-    total_pendapatan = format_currency(df_harian.pendapatan.sum(), "IDR", locale='id_ID') 
-    st.metric("Total Pendapatan", value=total_pendapatan)
-
-fig, ax = plt.subplots(figsize=(16, 8))
-ax.plot(
-    df_harian["order_delivered_customer_date"],
-    df_harian["jumlah_pesanan"],
-    marker='o', linewidth=2, color="#90CAF9"
-)
-ax.tick_params(axis='y', labelsize=20)
-ax.tick_params(axis='x', labelsize=15)
-
+st.subheader('Tren Jumlah Pesanan Mingguan')
+fig, ax = plt.subplots(figsize=(12, 6))
+ax.plot(df_mingguan["order_delivered_customer_date"], df_mingguan["order_id"], marker='o', linestyle='-', color="blue")
+ax.set_xlabel("Tanggal")
+ax.set_ylabel("Jumlah Pesanan")
+ax.set_title("Tren Jumlah Pesanan Mingguan")
+plt.xticks(rotation=45)
 st.pyplot(fig)
 
-# Performa Produk
+# Produk Terlaris dan Kurang Laku
+df_produk = df_main.groupby("product_id")["order_id"].count().reset_index()
+df_produk = df_produk.rename(columns={"order_id": "jumlah_penjualan"})
+df_produk = df_produk.merge(df_main[["product_id", "product_category_name"]].drop_duplicates(), on="product_id")
+
+fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(20, 6))
+
+# Produk Terlaris (Top 5)
+top5 = df_produk.nlargest(5, "jumlah_penjualan")
+sns.barplot(x="product_category_name", y="jumlah_penjualan", data=top5, ax=ax[0], color="blue")
+ax[0].set_title("Produk Terlaris")
+ax[0].set_xticklabels(ax[0].get_xticklabels(), rotation=45)
+
+# Produk Kurang Laku (Bottom 5)
+bottom5 = df_produk.nsmallest(5, "jumlah_penjualan")
+sns.barplot(x="product_category_name", y="jumlah_penjualan", data=bottom5, ax=ax[1], color="red")
+ax[1].set_title("Produk Kurang Laku")
+ax[1].set_xticklabels(ax[1].get_xticklabels(), rotation=45)
+
 st.subheader("Performa Produk")
-
-fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(35, 15))
-warna = ["#90CAF9", "#D3D3D3", "#D3D3D3", "#D3D3D3", "#D3D3D3"]
-
-sns.barplot(x="product_photos_qty", y="product_name_lenght", data=df_produk.head(5), palette=warna, ax=ax[0])
-ax[0].set_xlabel("Jumlah Penjualan", fontsize=30)
-ax[0].set_title("Produk Terlaris", fontsize=50)
-ax[0].tick_params(axis='y', labelsize=35)
-ax[0].tick_params(axis='x', labelsize=30)
-
-sns.barplot(x="product_photos_qty", y="product_name_lenght", data=df_produk.sort_values(by="product_photos_qty", ascending=True).head(5), palette=warna, ax=ax[1])
-ax[1].invert_xaxis()
-ax[1].set_xlabel("Jumlah Penjualan", fontsize=30)
-ax[1].set_title("Produk Kurang Laku", fontsize=50)
-ax[1].tick_params(axis='y', labelsize=35)
-ax[1].tick_params(axis='x', labelsize=30)
-
 st.pyplot(fig)
 
-# Pelanggan
-st.subheader("Demografi Pelanggan")
-fig, ax = plt.subplots(figsize=(20, 10))
-sns.barplot(y="jumlah_pelanggan", x="customer_state", data=df_provinsi, palette="pastel", ax=ax)
-ax.set_title("Jumlah Pelanggan per Provinsi", fontsize=30)
+# Distribusi jumlah pelanggan berdasarkan provinsi
+df_provinsi = df_main.groupby("customer_state")["customer_id"].nunique().reset_index()
+
+fig, ax = plt.subplots(figsize=(12, 6))
+sns.barplot(x="customer_state", y="customer_id", data=df_provinsi, color="#3498db")
+ax.set_title("Distribusi Jumlah Pelanggan Berdasarkan Provinsi")
 ax.set_xticklabels(ax.get_xticklabels(), rotation=90)
+st.subheader("Demografi Pelanggan")
 st.pyplot(fig)
-
-# Pelanggan Terbaik berdasarkan RFM
-st.subheader("Pelanggan Terbaik berdasarkan RFM")
-
-kol1, kol2, kol3 = st.columns(3)
-
-with kol1:
-    avg_recency = round(df_rfm.recency.mean(), 1)
-    st.metric("Rata-rata Recency (hari)", value=avg_recency)
-
-with kol2:
-    avg_frekuensi = round(df_rfm.frekuensi.mean(), 2)
-    st.metric("Rata-rata Frekuensi", value=avg_frekuensi)
-
-with kol3:
-    avg_moneter = format_currency(df_rfm.moneter.mean(), "IDR", locale='id_ID')
-    st.metric("Rata-rata Moneter", value=avg_moneter)
 
 st.caption('Coding Camp DBS Foundation © 2025')
